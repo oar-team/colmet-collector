@@ -19,13 +19,14 @@ readme = read('README.rst')
 changelog = read('CHANGES.rst').replace('.. :changelog:', '')
 
 requirements = [
-    # TODO: put package requirements here
+    #'tables',
+    'pyzmq',
+    'requests',
 ]
-
 
 version = ''
 version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                    read(op.join('colmet_collector', '__init__.py')),
+                    read(op.join('colmet', '__init__.py')),
                     re.MULTILINE).group(1)
 
 if not version:
@@ -42,18 +43,23 @@ setup(
     install_requires=requirements,
     include_package_data=True,
     zip_safe=False,
-    description="Metrics collectort for Rust Colmet version",
+    description="Metrics collector for Rust Colmet version",
     long_description=readme + '\n\n' + changelog,
     keywords='colmet-collector',
-    license='BSD',
+    license='GNU GPL',
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: BSD License',
         'Intended Audience :: Developers',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Clustering',
     ],
+    entry_points={
+        'console_scripts': [
+            'colmet-collector = colmet.collector.main:main',
+            'colmet-node-config = colmet.node.configure:main',
+        ],
+    },
 )
