@@ -1,10 +1,10 @@
 import collections
 import logging
 import time
-from zeromq import ZMQInputBackend
-from args_parser import ArgsParser
-from counter import CounterFactory
-from elasticsearch import ElasticsearchOutputBackend
+from .zeromq import ZMQInputBackend
+from .args_parser import ArgsParser
+from .counter import CounterFactory
+from .elasticsearch import ElasticsearchOutputBackend
 
 
 def main():
@@ -23,6 +23,7 @@ def main():
     if args.elastic_host:
         elasticsearch_backend = ElasticsearchOutputBackend(args.elastic_host)
 
+    print("Waiting data")    
     while True:
         received_data = zeromq.receive()
         stdout_backend.push(received_data)
