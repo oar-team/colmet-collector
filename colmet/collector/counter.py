@@ -3,6 +3,7 @@ import sys
 import yaml
 import glob
 
+
 def load_metrics_orders():
     metrics_orders = {}
     d = os.path.dirname(sys.modules["colmet"].__file__)
@@ -12,8 +13,12 @@ def load_metrics_orders():
                 mo = yaml.safe_load(stream)
                 v = mo['meta']['version']
                 metrics_orders[v] = {}
-                for i, metric_name in enumerate(mo['metrics_order']):
-                  metrics_orders[v][i] = metric_name
+                for entry in enumerate(mo['metrics_order']):
+                    backend_name = entry[1]
+                    print(backend_name)
+                    metrics_orders[v][backend_name] = {}
+                    for i, metric_name in enumerate(mo['metrics_order'][backend_name]):
+                        metrics_orders[v][backend_name][i] = metric_name
             except yaml.YAMLError as exc:
                 print(exc)
     print(metrics_orders)
@@ -31,6 +36,7 @@ class Counter:
 
 class CounterFactory:
     metrics_orders = load_metrics_orders()
+
     def __init__(self, data):
         self.counters = []
         for job_id, payload in data[0].items():
@@ -48,7 +54,7 @@ class CounterFactory:
                     tmp = backend[1]
                     self.metric_names = []
                     for compressed_metric_name in tmp:
-                        self.metric_names.append(CounterFactory.metrics_orders[version][compressed_metric_name])
+                        self.metric_names.append(CounterFactory.metrics_orders[version][backend][compressed_metric_name])
                     self.metric_values = backend[2]
                     self.backend_metrics = dict(zip(self.metric_names, self.metric_values))
                     counter = Counter(self.hostname, self.timestamp, self.job_id,
