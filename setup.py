@@ -39,7 +39,7 @@ setup(
     author="Olivier Richard",
     author_email='olivier.richard@imag.fr',
     version=version,
-    url='https://github.com/oar-team/colmet-collector',
+    url='https://github.com/Meandres/colmet-collector',
     # packages=find_packages(),
     packages=["colmet"],
     package_dir={'colmet': 'colmet'},
