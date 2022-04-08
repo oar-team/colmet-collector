@@ -49,7 +49,7 @@ class ZMQInputBackend(object):
                 if e.errno != zmq.EAGAIN:
                     raise e
                 else:  # zmq.EAGAIN is raised when there is no more message available in the queue
-                    LOG.debug("Zeromq receive queue is currently empty")
+                    # LOG.debug("Zeromq receive queue is currently empty")
                     return res
 
 
