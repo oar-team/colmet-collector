@@ -42,7 +42,7 @@ class ZMQInputBackend(object):
         while True:
             try:
                 received_data = self.receiver.recv(zmq.NOBLOCK)
-                received_data = msgpack.unpackb(received_data)
+                received_data = msgpack.unpackb(received_data, strict_map_key=False)
                 res.append(received_data)
                 del received_data
             except zmq.ZMQError as e:
