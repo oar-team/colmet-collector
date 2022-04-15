@@ -8,7 +8,6 @@ from .elasticsearch import ElasticsearchOutputBackend
 
 
 def main():
-    print("bonjour à tosu")
     args = ArgsParser.get_args()
 
     # configure the root logger
