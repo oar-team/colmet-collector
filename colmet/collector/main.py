@@ -23,6 +23,9 @@ def main():
     if args.elastic_host:
         elasticsearch_backend = ElasticsearchOutputBackend(args.elastic_host)
 
+    measurements=[{2098002: ['dahu-14.grenoble.grid5000.fr', 1650027829055, 1, [[2098002, 'memory', ['0'], [94631987008]], [2098002, 'cpu', ['36'], [0]]]]}]
+    stdout_backend.push(measurements)
+"""
     print("Waiting data")
     while True:
         received_data = zeromq.receive()
@@ -33,6 +36,8 @@ def main():
             if args.elastic_host:
                 elasticsearch_backend.push(CounterFactory(received_data).get_counters())
         sleep(args.sampling_period)
+"""
+
 def sleep(duration):
     now = time.time()
     time_to_wait = ((now // duration) + 1) * duration - now

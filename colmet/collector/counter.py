@@ -6,6 +6,7 @@ import glob
 
 def load_metrics_orders():
     metrics_orders = {}
+    prev_cpt=0
     d = os.path.dirname(sys.modules["colmet"].__file__)
     for metrics_orders_file in glob.glob(d + '/collector/metrics/*.yml'):
         with open(metrics_orders_file, 'r') as stream:
@@ -18,7 +19,8 @@ def load_metrics_orders():
                     #print(backend_name)
                     metrics_orders[v][backend_name] = {}
                     for i, metric_name in enumerate(mo['metrics_order'][backend_name]):
-                        metrics_orders[v][backend_name][i] = metric_name
+                        metrics_orders[v][backend_name][prev_cpt] = metric_name
+                        prev_cpt+=1
             except yaml.YAMLError as exc:
                 print(exc)
     #print(metrics_orders)
