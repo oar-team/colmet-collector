@@ -27,12 +27,11 @@ def main():
     while True:
         received_data = zeromq.receive()
         if received_data != []:
-            print(received_data)
-        stdout_backend.push(received_data)
+            stdout_backend.push(received_data)
         if received_data:
             if args.elastic_host:
                 elasticsearch_backend.push(CounterFactory(received_data).get_counters())
-        sleep(args.sampling_period)
+        #sleep(args.sampling_period)
 
 def sleep(duration):
     now = time.time()
