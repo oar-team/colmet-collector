@@ -3,6 +3,7 @@
 *.log
 *#
 **#
+.venv
 
 # Packages
 *.egg

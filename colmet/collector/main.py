@@ -34,7 +34,6 @@ def main():
                 elasticsearch_backend.push(CounterFactory(received_data).get_counters())
         sleep(args.sampling_period)
 
-
 def sleep(duration):
     now = time.time()
     time_to_wait = ((now // duration) + 1) * duration - now
