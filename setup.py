@@ -22,7 +22,8 @@ requirements = [
     #'tables',
     'pyzmq',
     'requests',
-    'pyyaml'
+    'pyyaml',
+    'msgpack'
 ]
 
 version = ''
