@@ -20,6 +20,7 @@ nodefile_call = subprocess.run(["cat", nodefile], stdout=subprocess.PIPE, text=T
 nodefile=nodefile_call.stdout
 nodes=nodefile.splitlines()
 hosts=list(set(nodes))
+print(hosts)
 
 
 class Oarapi:
@@ -164,7 +165,7 @@ def install_nix():
     p.wait()
 
     # We install nix on each nodes
-    p = Remote("curl https://nixos.org/nix/install | sh", hosts).start()
+    p = Remote("curl -L https://nixos.org/nix/install | sh", hosts).start()
     p.wait()
 
     # Print output
@@ -284,19 +285,17 @@ def kill_colmet():
 
 def do_expe():
     bench_name = "lu"
-    bench_class = "D"
-    bench_nb_procs = "128"
+    bench_class = "B"
+    bench_type = "mpi"
     bench_bin_path = "/home/{user}/.nix-profile/bin/".format(user=username)
-    mpi_executable_name = bench_bin_path + bench_name + "." + bench_class + "." + bench_nb_procs
+    mpi_executable_name = bench_bin_path + bench_name + "." + bench_class + "." + bench_type
 
     bench_nb_repeat = 10
 
     for bench_nb in range(bench_nb_repeat):
             bench_command = "mpirun -machinefile {nodefile} --mca btl openib --mca btl_openib_allow_ib 1 --mca btl_tcp_if_include ib0 --mca orte_rsh_agent 'oarsh' ".format(nodefile=nodefile) + mpi_executable_name
 
-            print("mpi commande : ", bench_command)
-
-            # print("executing :", bench_command)
+            #print("mpi commande : ", bench_command)
 
             p = Process(bench_command, shell=True).run(timeout=250)
             p.wait()
@@ -403,6 +402,6 @@ if __name__ == '__main__':
     #install_colmet()
     install_open_mpi()
     install_npb()
-    sleep(5)
+    #sleep(5)
     #restart_colmet(sampling_period=3)
     do_expe()
