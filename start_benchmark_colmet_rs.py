@@ -7,10 +7,14 @@ import sys
 import requests
 import json
 import os.path
+import os.environ
 import datetime
+import logging
+import subprocess
 
 site = "grenoble"
 username = "imeignanmasson"
+log = logging.getLogger(__name__)
 
 
 class Oarapi:
@@ -160,7 +164,7 @@ def install_nix():
 
     # Print output
     for k in p.processes:
-        print(k.stdout)
+        log.debug(k.stdout)
 
 
 def import_nix_store():
@@ -171,24 +175,13 @@ def import_nix_store():
     for k in p.processes:
         print(k.stdout)
 
-
 def install_colmet():
-    print("== Installing Colmet (python3) == \n")
+    print("== Installing Colmet (node and collector) == \n")
     
-    p = Remote("sudo-g5k dpkg -i /home/{user}/monitoring/grid5000/*.deb".format(user=username), hosts).start()
+    p = Remote("sudo-g5k pip install /home/{user}/colmet".format(user=username), hosts).start()
     p.wait()
     for k in p.processes:
-        print(k.stdout)
-    
-    p = Remote("sudo-g5k pip3 uninstall -y 'colmet'", hosts).start()
-    p.wait()
-    for k in p.processes:
-        print(k.stdout)
-    
-    p = Remote("sudo-g5k pip3 install /home/{user}/colmet".format(user=username), hosts).start()
-    p.wait()
-    for k in p.processes:
-        print(k.stdout)
+        log.debug(k.stdout)
 
 
 def install_open_mpi():
@@ -197,16 +190,17 @@ def install_open_mpi():
     p = Remote(command, hosts).start()
     p.wait()
     for k in p.processes:
-        print(k.stdout)
+        log.debug(k.stdout)
 
 
 def install_npb():
     print("== Installing NAS Parallel Benchmarks == \n")
-    command = "~/.nix-profile/bin/nix-env -f ~/kapack -iA npb -I ~/.nix-defexpr/channels/"
+    #TODO : check if the user has kapack in his home directory
+    command = "~/.nix-profile/bin/nix-env -f ~/nur-kapack -iA npb -I ~/.nix-defexpr/channels/"
     p = Remote(command, hosts).start()
     p.wait()
     for k in p.processes:
-        print(k.stdout)
+        log.debug(k.stdout)
 
 
 def restart_colmet(sampling_period):
@@ -271,7 +265,7 @@ def restart_colmet(sampling_period):
 #         print("process.stderr :  ", s.stderr)
 
 def kill_colmet():
-    p = Remote("sudo killall python3", hosts).start()
+    p = Remote("sudo-g5k killall colmet-node", hosts).start()
     p.wait()
     
     colmet_collector_nodes = [hosts.copy()[0]]
@@ -283,7 +277,30 @@ def kill_colmet():
     print("killed colmet")
 
 
-def mpi_run():
+def do_expe():
+    nodefile=os.environ['$OAR_NODEFILE']
+    
+    bench_name = "lu"
+    bench_class = "D"
+    bench_nb_procs = "128"
+    bench_bin_path = "/home/{user}/.nix-profile/bin/".format(user=username)
+    mpi_executable_name = bench_bin_path + bench_name + "." + bench_class + "." + bench_nb_procs
+
+    bench_nb_repeat = 10
+
+    for bench_nb in range(bench_nb_repeat):
+            bench_command = "mpirun -machinefile {nodefile} --mca btl openib --mca btl_openib_allow_ib 1 --mca btl_tcp_if_include ib0 --mca orte_rsh_agent 'oarsh' ".format(nodefile=nodefile) + mpi_executable_name
+
+            print("mpi commande : ", bench_command)
+
+            # print("executing :", bench_command)
+
+            p = Process(bench_command, shell=True).run(timeout=250)
+            p.wait()
+            # print(p.stdout)
+
+
+"""
     for sample_period in [5, 4, 3]:
         print("changing sample period to :", sample_period)
 
@@ -328,53 +345,61 @@ def mpi_run():
 
 #             for k in p.processes:
 #                 print(k.stdout)
+"""
 
+if __name__ == '__main__':
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
 
-session = requests.Session()
-session.verify = False  # Disable ssl checking
-requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)  # Disable insecure requests warnings
-base_url = "http://api.grid5000.fr/stable/sites/{site}/internal/oarapi".format(
+    """session = requests.Session()
+    session.verify = False  # Disable ssl checking
+    requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)  # Disable insecure requests warnings
+    base_url = "http://api.grid5000.fr/stable/sites/{site}/internal/oarapi".format(
     site=site)  # Get the end point of the oarapi for this site
-oarapi = Oarapi(base_url, session=session)  # Create one instance of the Oarapi to request the site
+    oarapi = Oarapi(base_url, session=session)  # Create one instance of the Oarapi to request the site
 
-# We get the current user, f the notebook is launched from the frontend, you should be authenticated
-user = oarapi.get_user()
-print("Connected as:", user)
+    # We get the current user, f the notebook is launched from the frontend, you should be authenticated
+    user = oarapi.get_user()"""
+    user_call = subprocess.run(["whoami"], stdout=subprocess.PIPE, text=True)
+    user=user_call.stdout
+    print("Connected as:", user)
 
-# Get the jobs belonging to the current user
-# and select the first one
-jobs = oarapi.get_jobs(user=user)
+    """
+    # Get the jobs belonging to the current user
+    # and select the first one
+    jobs = oarapi.get_jobs(user=user)
 
-hosts = []
+    hosts = []
 
-# Print the job list
-for job in jobs:
-    print("job: ", job["id"])
+    # Print the job list
+    for job in jobs:
+        print("job: ", job["id"])
 
-# By default pick the first job
+    # By default pick the first job
 
-job = jobs[0]
+    job = jobs[0]
 
-nodes = oarapi.get_job_nodes(job["id"])
-for node in nodes:
-    hosts.append(node["network_address"])
+    nodes = oarapi.get_job_nodes(job["id"])
+    for node in nodes:
+        hosts.append(node["network_address"])
 
-hosts.sort()
-print(hosts)
+    hosts.sort()
+    print(hosts)
 
-# add hosts for mpi in /temp/hosts file
-p = Remote("echo -e " + "'" + "\n".join(hosts[1:]) + "'" + "> /tmp/hosts", hosts).start()
-p.wait()
+    # add hosts for mpi in /temp/hosts file
+    p = Remote("echo -e " + "'" + "\n".join(hosts[1:]) + "'" + "> /tmp/hosts", hosts).start()
+    p.wait()"""
 
-# Requesting root access
-# p = Remote("sudo-g5k", hosts).start()
-# p.wait()
+    # Requesting root access
+    p = Remote("sudo-g5k", hosts).start()
+    p.wait()
 
-# install_nix()
-# import_nix_store()
-# install_colmet()
-# install_open_mpi()
-# install_npb()
-# sleep(5)
-# restart_colmet(sampling_period=3)
-# mpi_run()
+    #setting up environment
+    install_nix()
+    #import_nix_store()
+    #install_colmet()
+    install_open_mpi()
+    install_npb()
+    sleep(5)
+    #restart_colmet(sampling_period=3)
+    do_expe()
