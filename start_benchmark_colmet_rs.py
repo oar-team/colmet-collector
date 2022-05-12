@@ -7,7 +7,7 @@ import sys
 import requests
 import json
 import os.path
-import os.environ
+import os
 import datetime
 import logging
 import subprocess
@@ -15,6 +15,11 @@ import subprocess
 site = "grenoble"
 username = "imeignanmasson"
 log = logging.getLogger(__name__)
+nodefile=os.environ['OAR_NODE_FILE']
+nodefile_call = subprocess.run(["cat", nodefile], stdout=subprocess.PIPE, text=True)
+nodefile=nodefile_call.stdout
+nodes=nodefile.splitlines()
+hosts=list(set(nodes))
 
 
 class Oarapi:
@@ -278,8 +283,6 @@ def kill_colmet():
 
 
 def do_expe():
-    nodefile=os.environ['$OAR_NODEFILE']
-    
     bench_name = "lu"
     bench_class = "D"
     bench_nb_procs = "128"
@@ -391,8 +394,8 @@ if __name__ == '__main__':
     p.wait()"""
 
     # Requesting root access
-    p = Remote("sudo-g5k", hosts).start()
-    p.wait()
+    #p = Remote("sudo-g5k", hosts).start()
+    #p.wait()
 
     #setting up environment
     install_nix()
