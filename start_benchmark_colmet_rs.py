@@ -155,7 +155,7 @@ def install_nix():
     # https://unix.stackexchange.com/a/495523
     # Activate user namespace in debian
     # https://superuser.com/questions/1094597/enable-user-namespaces-in-debian-kernel
-    p = Remote("sudo su root -c 'echo 1 > /proc/sys/kernel/unprivileged_userns_clone'", hosts).start()
+    p = Remote("sudo-g5k su root -c 'echo 1 > /proc/sys/kernel/unprivileged_userns_clone'", hosts).start()
     p.wait()
 
     # We install nix on each nodes
