@@ -108,15 +108,21 @@ class Colmet_bench(Engine):
         print("job started : -- %s seconds --" % (time.time()-starttime))
         nodes = get_oar_job_nodes(job_id, site)
         self.hostnames=list()
+        self.hosts_mpi=""
         self.collector_hostname=nodes[0]
         for i in range(1, len(nodes)):
             self.hostnames.append(nodes[i].address)
+        hf=open("nodefile","w")
+        for h in self.hostnames:
+            for i in range(1, int(get_host_attributes(h)['architecture']['nb_cores'])):
+                hf.write(h+"\n")
+        hf.close()
         print("lists made : -- %s seconds --" % (time.time()-starttime))
         #install_softwares(self.hostnames, args.store)
         install_nix(self.hostnames)
         if args.store!=None:
             import_nix_store(self.hostnames, args.store)
-        install_open_mpi(self.hostnames)
+        #install_open_mpi(self.hostnames)
         install_npb(self.hostnames)
         install_colmet(self.hostnames)
         print("software installed : -- %s seconds --" % (time.time()-starttime))
@@ -148,8 +154,7 @@ class Colmet_bench(Engine):
         if self.params['colmet_on_off'] == 'on':
             start_colmet(self.hostnames, ())
         for bench_nb in range(self.params['bench_nb_repeat']):
-            #bench_command = "mpirun  --mca btl openib --mca btl_openib_allow_ib 1 --mca btl_tcp_if_include ib0 --mca orte_rsh_agent 'oarsh' ".format(nodefile=self.hostnames) + mpi_executable_name
-            bench_command = "mpirun  " + mpi_executable_name
+            bench_command = "mpirun -machinefile nodefile -mca mtl psm2 -mca pml ^ucx,ofi -mca btl ^ofi,openib " + mpi_executable_name
     
             p = SshProcess(bench_command, self.params['mpi_root_host']).run(timeout=250)
             p.wait()
@@ -169,9 +174,9 @@ if __name__ == "__main__":
 
     bench = Colmet_bench()
     bench.prepare_bench(args)
-    #out=bench.run_xp("imeignanmasson;lu;C;mpi;5;off")
-    #f.write(out)
-    #out=bench.run_xp("imeignanmasson;lu;C;mpi;5;on")
-    #f.write(out)
-    #f.close()
-    #bench.clean_bench()
+    out=bench.run_xp("imeignanmasson;lu;C;mpi;5;off")
+    f.write(out)
+    out=bench.run_xp("imeignanmasson;lu;C;mpi;5;on")
+    f.write(out)
+    f.close()
+    bench.clean_bench()
