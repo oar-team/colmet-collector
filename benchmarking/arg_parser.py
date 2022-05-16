@@ -15,17 +15,14 @@ class ArgsParser(object):
 
         parser.add_argument('-v', '--verbose', action='count', dest="verbosity", default=1)
 
-        group.add_argument('-t', '--type-bench', dest='type_bench', default=mpi,
-                            help='Type of benchmark (OpenMP or MPI)')
-
         group = parser.add_argument_group('Program to benchmark')
         
-        group.add_argument('-t', '--type-bench', dest='type_bench', default=mpi,
+        group.add_argument('-t', '--type-bench', dest='type_bench', default="mpi",
                             help='Type of benchmark (OpenMP or MPI)')
         
-        group.add_argument('-name', '--name-bench', dest='name_bench', default=lu,
+        group.add_argument('-name', '--name-bench', dest='name_bench', default="lu",
                             help='Name of benchmark (lu, ft, etc...)')
-        group.add_argument('-c', '--class-bench', dest='class_bench', default=B, 
+        group.add_argument('-c', '--class-bench', dest='class_bench', default="B", 
                             help='Class of benchmark (B, C or D are the most likely)')
 
         parser.add_argument_group(group)
@@ -33,7 +30,7 @@ class ArgsParser(object):
         group = parser.add_argument_group('Benchmark settings')
 
         group.add_argument('-n', '--number-nodes', type=int, dest='number_nodes', 
-                default=2, help="Number of nodes to consider for the benchmark'")
+                default=3, help="Number of nodes to consider for the benchmark (One will be used for the collector)")
 
         group.add_argument('-r', '--repetitions-exerience', type=int, dest='repetitions',
                 default=10, help="Number of time to run each benchmark'")
