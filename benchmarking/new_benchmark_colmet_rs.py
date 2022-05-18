@@ -81,6 +81,8 @@ def parse_output(s):
             out=sp[-1]
     return out
 
+def format_walltime(nb_mins):
+    return "{}:{}:0".format(int(nb_mins/60), nb_mins%60)
 
 class Colmet_bench(Engine):
     """
@@ -126,11 +128,11 @@ class Colmet_bench(Engine):
         command_update = "python ~/colmet-rs/configure.py {} {}".format(new_sampling_period, new_metrics)
         u = Remote(command_update, self.hostnames).run()
 
-    def prepare_bench(self, args):
+    def prepare_bench(self, args, walltime):
         """Request a job to g5k and set up the nodes to execute the benchmark"""
 
         #Requests a job
-        self.jobs = oarsub([(OarSubmission(resources="cluster=1/nodes={}".format(args.number_nodes), walltime="3:0:0", additional_options="-O /dev/null -E /dev/null"), args.site)])
+        self.jobs = oarsub([(OarSubmission(resources="cluster=1/nodes={}".format(args.number_nodes), walltime=walltime, additional_options="-O /dev/null -E /dev/null"), args.site)])
         self.job=self.jobs[0]
         job_id, site = self.job
         wait_oar_job_start(job_id)
@@ -176,7 +178,7 @@ class Colmet_bench(Engine):
     def run_xp(self, parameters):
         """Execute the bench for a given combination of parameters."""
         self.parse_params(parameters)
-        print(str(self.colmet_launched) + " : "+parameters)
+        #print(str(self.colmet_launched) + " : "+parameters)
         bench_bin_path = "~/.nix-profile/bin/"
         mpi_executable_name = bench_bin_path + self.params['bench_name'] + "." + self.params['bench_class'] + "." + self.params['bench_type']
 
@@ -208,25 +210,19 @@ class Colmet_bench(Engine):
 
 if __name__ == "__main__":
     starttime=time.time()
+    approx_time_expe_mins=1.5
     args = ArgsParser.get_args()
-    plan=experiment_plan_generator("expe_1.yml")
+    plan=experiment_plan_generator("expe_2.yml")
     args.number_nodes=plan.get_max_nb_nodes()+1
-    #logging.basicConfig( 
-    #        format = '%(asctime)s - %(levelname)s - %(message)s',
-    #        datefmt = '%d/%m/%Y %H:%M:%S',
-    #        level = 40 - args.verbosity * 10)
     logger.setLevel(40 - args.verbosity * 10)
-    filename="expe_1_benchmark"
+    filename="expe_2_benchmark"
     f = open(filename, "w")
-
     bench = Colmet_bench()
-    bench.prepare_bench(args)
-    #a = input("Next")
+    bench.prepare_bench(args, format_walltime(plan.get_nb_remaining()*approx_time_expe_mins))
+    
     while plan.get_nb_remaining() > 0:
         print("Remaining : "+str(plan.get_percentage_remaining())+"%")
-        out=bench.run_xp("{};{};{};{}".format(args.name_bench, args.class_bench, args.type_bench, plan.get_next_config()))
+        out=bench.run_xp("{};{};{};on;{}".format(args.name_bench, args.class_bench, args.type_bench, plan.get_next_config()))
         f.write(out)
-        #a = input("Next")
-
     f.close()
     bench.clean_bench()

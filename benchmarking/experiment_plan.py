@@ -16,14 +16,14 @@ class experiment_plan_generator():
         self.max_nb_nodes = max(expe['nodes'])
         self.sweeper=ParamSweeper("sweeps", sweep(expe))
         #print("Total : ",len(self.sweeper.get_remaining()))
-        already_considered=list() 
+        """already_considered=list() 
         for c in self.sweeper.get_sweeps():
             # Configuration where colmet is turned off should be done only once for each number of nodes
             if c['colmet']=='off': 
                 if c['nodes'] in already_considered:
                     self.sweeper.done(c)
                 else:
-                    already_considered.append(c['nodes'])
+                    already_considered.append(c['nodes'])"""
         #print("Remaining : ",len(self.sweeper.get_remaining()))
         self.done_start=len(self.sweeper.get_done())
 
