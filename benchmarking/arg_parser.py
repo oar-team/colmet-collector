@@ -22,20 +22,10 @@ class ArgsParser(object):
         
         group.add_argument('-name', '--name-bench', dest='name_bench', default="lu",
                             help='Name of benchmark (lu, ft, etc...)')
-        group.add_argument('-c', '--class-bench', dest='class_bench', default="B", 
+        group.add_argument('-c', '--class-bench', dest='class_bench', default="C", 
                             help='Class of benchmark (B, C or D are the most likely)')
 
         parser.add_argument_group(group)
-
-        group = parser.add_argument_group('Benchmark settings')
-
-        group.add_argument('-n', '--number-nodes', type=int, dest='number_nodes', 
-                default=3, help="Number of nodes to consider for the benchmark (One will be used for the collector)")
-
-        group.add_argument('-r', '--repetitions-exerience', type=int, dest='repetitions',
-                default=10, help="Number of time to run each benchmark'")
-
-        group.add_argument('-w', '--walltime', type=int, dest='walltime', default='60', help='Walltime given to a complete job. WARNING : the time allocated to one repetition will be walltime/nb_repetitions')
 
         group.add_argument('-s', '--site', dest='site', default='grenoble', help='Site to request nodes')
 
