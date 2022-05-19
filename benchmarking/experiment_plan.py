@@ -13,7 +13,7 @@ class experiment_plan_generator():
         expe['repetitions']=list()
         for i in range(0, rep):
             expe['repetitions'].append(i)
-        self.max_nb_nodes = max(expe['nodes'])
+        #self.max_nb_nodes = max(expe['nodes'])
         self.sweeper=ParamSweeper("sweeps", sweep(expe))
         #print("Total : ",len(self.sweeper.get_remaining()))
         """already_considered=list() 

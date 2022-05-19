@@ -210,19 +210,20 @@ class Colmet_bench(Engine):
 
 if __name__ == "__main__":
     starttime=time.time()
-    approx_time_expe_mins=1.5
+    approx_time_expe_mins=1
     args = ArgsParser.get_args()
-    plan=experiment_plan_generator("expe_2.yml")
-    args.number_nodes=plan.get_max_nb_nodes()+1
+    plan=experiment_plan_generator("expe_3.yml")
+    #args.number_nodes=plan.get_max_nb_nodes()+1
+    args.number_nodes=5
     logger.setLevel(40 - args.verbosity * 10)
-    filename="expe_2_benchmark"
+    filename="expe_3_benchmark"
     f = open(filename, "w")
     bench = Colmet_bench()
     bench.prepare_bench(args, format_walltime(plan.get_nb_remaining()*approx_time_expe_mins))
     
     while plan.get_nb_remaining() > 0:
         print("Remaining : "+str(plan.get_percentage_remaining())+"%")
-        out=bench.run_xp("{};{};{};on;{}".format(args.name_bench, args.class_bench, args.type_bench, plan.get_next_config()))
+        out=bench.run_xp("{};{};{};on;{};4".format(args.name_bench, args.class_bench, args.type_bench, plan.get_next_config()))
         f.write(out)
     f.close()
     bench.clean_bench()
