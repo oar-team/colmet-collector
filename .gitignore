@@ -52,3 +52,9 @@ docs/_build
 
 # Vagrant
 .vagrant
+
+benchmarking/__pycache__
+benchmarking/cachedir
+benchmarking/sweeps
+benchmarking/nodefile
+benchmarking/install_commands.sh

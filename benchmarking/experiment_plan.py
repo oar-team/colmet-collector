@@ -13,19 +13,7 @@ class experiment_plan_generator():
         expe['repetitions']=list()
         for i in range(0, rep):
             expe['repetitions'].append(i)
-        #self.max_nb_nodes = max(expe['nodes'])
         self.sweeper=ParamSweeper("sweeps", sweep(expe))
-        #print("Total : ",len(self.sweeper.get_remaining()))
-        """already_considered=list() 
-        for c in self.sweeper.get_sweeps():
-            # Configuration where colmet is turned off should be done only once for each number of nodes
-            if c['colmet']=='off': 
-                if c['nodes'] in already_considered:
-                    self.sweeper.done(c)
-                else:
-                    already_considered.append(c['nodes'])"""
-        #print("Remaining : ",len(self.sweeper.get_remaining()))
-        self.done_start=len(self.sweeper.get_done())
 
     def get_next_config(self):
         config=self.sweeper.get_next()
@@ -35,7 +23,7 @@ class experiment_plan_generator():
         return self.sweeper.stats()
 
     def get_percentage_remaining(self):
-        return int(len(self.sweeper.get_remaining())/(len(self.sweeper.get_sweeps())-self.done_start)*100)
+        return int(len(self.sweeper.get_remaining())/len(self.sweeper.get_sweeps())*100)
     
     def get_nb_remaining(self):
         return len(self.sweeper.get_remaining())
@@ -45,6 +33,6 @@ class experiment_plan_generator():
 
 if __name__ == "__main__":
     logger.setLevel(0)
-    plan=experiment_plan_generator("expe_1.yml")
+    plan=experiment_plan_generator("expe_3.yml")
     print(plan.get_nb_remaining())
     print(plan.get_next_config())
