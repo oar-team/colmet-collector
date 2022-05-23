@@ -1,4 +1,5 @@
 uniform parameters :d i c t _ v a l u e s ( [ ' l u ' ,   ' C ' ,   ' m p i ' ,   4 ] )
+repetition;metrics;sampling_period;time
 6;cache,pgfault,dirty,active_file,nr_periods,throttled_time,context_switches,branch_instructions,pgpgin,pgpgout,inactive_anon,total_swap,branch_misses,cache_l1,cache_op_read,cache_result_access,alignement_faults,cpu_migrations,bus_cycles,emulation_faults;2;13.53
 3;cache,nr_periods,context_switches,cpu_migrations,bus_cycles;2;13.38
 6;cache,nr_periods,context_switches,cpu_migrations,bus_cycles;2;13.43

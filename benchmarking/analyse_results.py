@@ -39,7 +39,7 @@ if __name__ == "__main__":
         s = fsum(sums[k])
         avg = s / len(sums[k])
         key_parts = k.split(";")
-        for j in range(len(key_parts)):
+        for j in range(len(key_parts) - 1):
             if(str(key_parts[j]) == str(expe[param_keys[j + 1]][0])):
                 results[letters[j]].append(-1)
             else:
