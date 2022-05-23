@@ -178,11 +178,11 @@ if __name__ == "__main__":
     starttime=time.time()
     approx_time_expe_mins=1
     args = ArgsParser.get_args()
-    plan=experiment_plan_generator("expe_3.yml")
+    plan=experiment_plan_generator("expe_4.yml")
     #args.number_nodes=plan.get_max_nb_nodes()+1
     args.number_nodes=5
     logger.setLevel(40 - args.verbosity * 10)
-    filename="expe_3_benchmark"
+    filename="expe_4_benchmark"
     uniform_parameters={
             'bench_name': args.name_bench, 
             'bench_class': args.class_bench, 
