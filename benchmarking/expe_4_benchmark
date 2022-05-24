@@ -1,5 +1,6 @@
 uniform parameters :d i c t _ v a l u e s ( [ ' l u ' ,   ' D ' ,   ' m p i ' ,   4 ] )
-repetition;metrics;sampling_period;time6;cache,nr_periods,context_switches,cpu_migrations,bus_cycles;0.1;212.44
+repetition;metrics;sampling_period;time
+6;cache,nr_periods,context_switches,cpu_migrations,bus_cycles;0.1;212.44
 1;cache,nr_periods,context_switches,cpu_migrations,bus_cycles;0.1;213.20
 9;cache,nr_periods,context_switches,cpu_migrations,bus_cycles;0.01;212.45
 0;cache,nr_periods,context_switches,cpu_migrations,bus_cycles;0.1;213.83
