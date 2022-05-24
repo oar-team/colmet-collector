@@ -9,6 +9,7 @@ import os
 import threading
 username=""
 starttime=0
+colmet_version="rs"
 
 def install_nix(hosts):
     logger.debug("== Installing Nix == \n")
@@ -49,16 +50,20 @@ def install_npb(hosts):
 def install_colmet(collector_host, hosts):
     logger.debug("== Installing Colmet(Rust version) == \n")
     #TODO : check if the user has kapack in his home directory
-    #command_node = "~/.nix-profile/bin/nix-env -f ~/nur-kapack -iA colmet-rs -I ~/.nix-defexpr/channels/"
-    #command_collector = "~/.nix-profile/bin/nix-env -f ~/nur-kapack -iA colmet-collector -I ~/.nix-defexpr/channels"
-    #p = Remote(command_node, hosts).start()
-    #c = SshProcess(command_collector, collector_host).run()
-    #p.wait()
-    c = Remote("~/.nix-profile/bin/nix-env -f ~/nur-kapack -iA colmet -I ~/.nix-defexpr/channels/", hosts).start()
-    c.wait()
-    #logger.debug(c.stdout)
-    #for k in p.processes:
-    #    logger.debug(k.stdout)
+    if colmet_version == "rs":
+        command_node = "~/.nix-profile/bin/nix-env -f ~/nur-kapack -iA colmet-rs -I ~/.nix-defexpr/channels/"
+        command_collector = "~/.nix-profile/bin/nix-env -f ~/nur-kapack -iA colmet-collector -I ~/.nix-defexpr/channels"
+        p = Remote(command_node, hosts).start()
+        c = SshProcess(command_collector, collector_host).run()
+        p.wait()
+        c.wait()
+        logger.debug(c.stdout)
+        for k in p.processes:
+            logger.debug(k.stdout)
+
+    if colmet_version == "py":
+        c = Remote("~/.nix-profile/bin/nix-env -f ~/nur-kapack -iA colmet -I ~/.nix-defexpr/channels/", hosts).start()
+        c.wait()
     print("Colmet installed : -- %s seconds --" % (time.time()-starttime))
 
 def parse_output(s):
@@ -83,8 +88,10 @@ class Colmet_bench(Engine):
     def start_colmet(self, collector_parameters, parameters):
         logger.debug("Start colmet node agent on all the compute nodes with the specified parameters and the collector on the corresponding host")
         command_node = ".nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
-        #command_collector = "~/.nix-profile/bin/colmet-collector"
-        command_collector = "~/.nix-profile/bin/colmet-collector {}".format(collector_parameters)
+        if colmet_version == "rs":
+            command_collector = "~/.nix-profile/bin/colmet-collector"
+        if colmet_version == "py":
+            command_collector = "~/.nix-profile/bin/colmet-collector {}".format(collector_parameters)
 
         self.colmet_nodes = Remote(command_node, self.hostnames).start()
         self.collector = SshProcess(command_collector, self.collector_hostname).start()
@@ -95,11 +102,10 @@ class Colmet_bench(Engine):
         # We assign to nothing to suppress outputs
         _ = self.colmet_nodes.kill()
         _ = self.collector.kill()
-        w = SshProcess("killall .colmet-collect", self.collector_hostname).start()
-        w.wait()
+        if colmet_version == "py":
+            _ = SshProcess("killall .colmet-collect", self.collector_hostname).run()
         _ = self.colmet_nodes.wait()
         _ = self.collector.wait()
-        #a = input("Vous avez commis des crimes contre Bordeciel et ses habitants. Payez l'ammende ou allez en prison.")
         self.colmet_launched = False
 
     def update_hostnames(self, nb_nodes):
@@ -139,12 +145,14 @@ class Colmet_bench(Engine):
             import_nix_store(nodes, args.store)
         #install_open_mpi(self.hostnames)
         install_npb(self.initial_hostnames)
-        #install_colmet(self.collector_hostname, self.initial_hostnames)
-        #install_colmet(self.collector_hostname, nodes)
+        if colmet_version == "rs":
+            install_colmet(self.collector_hostname, self.initial_hostnames)
+            colmet_args=" --enable-perfhw"
+            self.start_colmet("", colmet_args)
+        if colmet_version == "py":
+            install_colmet(self.collector_hostname, nodes)
         self.update_hostnames(args.number_nodes-1)
-        #colmet_args=" --enable-perfhw"
-        #self.start_colmet("", colmet_args)
-
+        
     def clean_bench(self):
         oardel(self.jobs)
         self.job=None
@@ -156,23 +164,25 @@ class Colmet_bench(Engine):
     def parse_params(self, parameters):
         p=parameters.split(";")
         self.params={}
-        #self.params['metrics']=p[1]
-        #self.params['sampling_period']=p[2]
-        #self.params['sampling_period']=p[1]
+        if colmet_version == "rs":
+            self.params['metrics']=p[1]
+            self.params['sampling_period']=p[2]
+        if colmet_version == "py":
+            self.params['sampling_period']=p[1]
         self.params['mpi_root_host']=self.hostnames[0]
 
     def run_xp(self, uniform_parameters, parameters):
         """Execute the bench for a given combination of parameters."""
         self.parse_params(parameters)
-        #print(str(self.colmet_launched) + " : "+parameters)
         bench_bin_path = "~/.nix-profile/bin/"
         mpi_executable_name = bench_bin_path + uniform_parameters['bench_name'] + "." + uniform_parameters['bench_class'] + "." + uniform_parameters['bench_type']
 
-        #self.update_colmet(self.params['sampling_period'], self.params['metrics'])
-        """if self.colmet_launched == True:
-            self.kill_colmet()
-            print("killing colmet")
-        self.start_colmet("--enable-stdout-backend -s {}".format(self.params['sampling_period']), "-s {}".format(self.params['sampling_period']))"""
+        if colmet_version == "rs":
+            self.update_colmet(self.params['sampling_period'], self.params['metrics'])
+        if colmet_version == "py":
+            if self.colmet_launched == True:
+                self.kill_colmet()
+            self.start_colmet("--enable-stdout-backend -s {}".format(self.params['sampling_period']), "-s {}".format(self.params['sampling_period']))
 
         bench_command = "mpirun -machinefile {}/nodefile -mca mtl psm2 -mca pml ^ucx,ofi -mca btl ^ofi,openib ".format(os.getcwd()) + mpi_executable_name
     
@@ -185,21 +195,30 @@ if __name__ == "__main__":
     approx_time_expe_mins=5
     approx_time_setup=20
     args = ArgsParser.get_args()
-    plan=experiment_plan_generator("expe_4_without_colmet.yml")
-    #args.number_nodes=plan.get_max_nb_nodes()+1
+    n_expe=5
+    if colmet_version == "rs":
+        plan=experiment_plan_generator("expe_{}.yml".format(n_expe))
+        filename="expe_{}_benchmark".format(n_expe)
+        f = open(filename, "w")
+        f.write("repetition;metrics;sampling_period;time\n")
+    elif colmet_version == "py":
+        plan=experiment_plan_generator("expe_{}_old_colmet.yml".format(n_expe))
+        filename="expe_{}_benchmark_old_colmet".format(n_expe)
+        f = open(filename, "w")
+        f.write("repetition;sampling_period;time\n")
+    else:
+        plan=experiment_plan_generator("expe_{}_without_colmet.yml".format(n_expe))
+        filename="expe_{}_benchmark_without_colmet".format(n_expe)
+        f = open(filename, "w")
+        f.write("repetition;sampling_period;time\n")
     args.number_nodes=5
     logger.setLevel(40 - args.verbosity * 10)
-    filename="expe_4_benchmark_without_colmet"
     uniform_parameters={
             'bench_name': args.name_bench, 
             'bench_class': args.class_bench, 
             'bench_type': args.type_bench,
             'nb_nodes': args.number_nodes-1
     }
-    f = open(filename, "w")
-    f.write("uniform parameters :") 
-    f.write(" ".join(list(str(uniform_parameters.values())))+"\n")
-    f.write("repetition;metrics;sampling_period;time")
     bench = Colmet_bench()
     bench.prepare_bench(args, format_walltime(approx_time_setup + plan.get_nb_remaining() * approx_time_expe_mins))
     
