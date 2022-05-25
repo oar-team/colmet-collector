@@ -24,7 +24,7 @@ class experiment_plan_generator():
         return self.sweeper.stats()
 
     def get_percentage_remaining(self):
-        return int(len(self.sweeper.get_remaining())/(len(self.sweeper.get_sweeps())-self.done_start)*100)
+        return int(len(self.sweeper.get_remaining())/len(self.sweeper.get_sweeps())*100)
     
     def get_nb_remaining(self):
         return len(self.sweeper.get_remaining())

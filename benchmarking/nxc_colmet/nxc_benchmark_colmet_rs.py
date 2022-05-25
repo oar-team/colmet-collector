@@ -29,9 +29,8 @@ def write_nodefile(nodes):
     hf=open("{}/nodefile".format(os.getcwd()),"w")
     for n in nodes:
         print(n)
-        for _ in range(0, int(get_host_attributes(n)['architecture']['nb_cores'])*2):
-            hf.write(nodes[i]+"\n")
-    print("Finished writing nodefile")
+        for _ in range(0, int(get_host_attributes(n)['architecture']['nb_threads'])):
+            hf.write(n+"\n")
     hf.close()
 
 class Colmet_bench(Engine):
@@ -45,6 +44,7 @@ class Colmet_bench(Engine):
         parser.add_argument('--build', action='store_true', help='Build the composition')
         parser.add_argument('--nxc_folder', default="~/nixProjects/nixos-compose", help="Path to the NXC folder")
         parser.add_argument('--experiment_file', help="File describing the experiment to perform", default="expe_5.yml")
+        parser.add_argument('--result_file', help="Output file", default="expe_5_benchmark")
         parser.add_argument('--time_experiment', default=90, help="Time needed to perform one repetition (in sec)")
         parser.add_argument('--site', default="grenoble", help="G5K site where the submission will be issued")
         parser.add_argument('--cluster', default="dahu", help="G5K cluster from where nodes should be requested")
@@ -68,14 +68,12 @@ class Colmet_bench(Engine):
         else:
             raise Exception("No compose info file")
         oar_job = reserve_nodes(self.plan.get_required_nb_node()+1, self.args.site, self.args.cluster, walltime = self.plan.get_nb_remaining()*self.args.time_experiment)
-        print("Finished requested nodes")
         self.oar_job_id, site = oar_job[0]
         roles = {"collector":1, "compute":self.plan.get_required_nb_node()}
+        node_hostnames = get_oar_job_nodes(self.oar_job_id, self.args.site)
         self.nodes = get_oar_job_nodes_nxc(self.oar_job_id, self.args.site, compose_info_file=nxc_build_file, roles_quantities=roles)
-        print("get_oar_job_nodes_nxc done")
-        compute_hosts=list()
-        for n in self.nodes["compute"]:
-            compute_hosts.append(n.address)
+        compute_hosts = [ node_hostnames[i].address for i in range(1, len(node_hostnames)) ]
+        self.plan = experiment_plan_generator(self.args.experiment_file)
         write_nodefile(compute_hosts)
         print("Nodes : ", self.nodes)
 
@@ -92,14 +90,16 @@ class Colmet_bench(Engine):
         """Killing colmet node agent on all the compute nodes"""
         # We assign to nothing to suppress outputs
         _ = self.colmet_nodes.kill()
-        _ = self.collector.kill()
+        #_ = self.collector.kill()
         _ = self.colmet_nodes.wait()
-        _ = self.collector.wait()
+        #_ = self.collector.wait()
         self.colmet_launched = False
 
     def update_colmet(self, new_sampling_period, new_metrics):
-        command_update = "colmet-node-config {} {}".format(new_sampling_period, new_metrics)
-        u = Remote(command_update, self.nodes["compute"]).run()
+        self.kill_colmet()
+        colmet_args=" --enable-perfhw -s {} -m {}".format(new_sampling_period, new_metrics)
+        collector_args=""
+        self.start_colmet(collector_args, colmet_args)
 
     def parse_params(self, parameters):
         p=parameters.split(";")
@@ -108,9 +108,9 @@ class Colmet_bench(Engine):
         self.params['sampling_period']=p[2]
 
     def run(self):
-        colmet_args=" --enable-perfhw -m {} -s {}".format(self.params['metrics'], self.params['sampling_period'])
+        colmet_args=" --enable-perfhw"
         self.start_colmet("", colmet_args)
-        uniform_parameters = {
+        self.uniform_parameters = {
                 'bench_name':self.args.name_bench,
                 'bench_class':self.args.class_bench,
                 'bench_type':self.args.type_bench,
@@ -118,13 +118,13 @@ class Colmet_bench(Engine):
                 }
         f = open("expe_result", "w")
         f.write("repetition;sampling;metrics;time\n")
-        while plan.get_nb_remaining() > 0:
-            print("Remaining : "+str(plan.get_percentage_remaining())+"%")
-            f.write(self.do_repetition(uniform_parameters, plan.get_next_config()))
+        while self.plan.get_nb_remaining() > 0:
+            print("Remaining : "+str(self.plan.get_percentage_remaining())+"%")
+            f.write(self.do_repetition(self.plan.get_next_config()))
         f.close()
 
 
-    def do_repetition(self, uniform_parameters, parameters):
+    def do_repetition(self, parameters):
         """Execute the bench for a given combination of parameters."""
         self.parse_params(parameters)
         bench_bin_path = "~/.nix-profile/bin/"

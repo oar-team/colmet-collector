@@ -211,7 +211,7 @@ if __name__ == "__main__":
         filename="expe_{}_benchmark_without_colmet".format(n_expe)
         f = open(filename, "w")
         f.write("repetition;sampling_period;time\n")
-    args.number_nodes=5
+    args.number_nodes=2
     logger.setLevel(40 - args.verbosity * 10)
     uniform_parameters={
             'bench_name': args.name_bench, 

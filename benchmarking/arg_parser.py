@@ -22,7 +22,7 @@ class ArgsParser(object):
         
         group.add_argument('-name', '--name-bench', dest='name_bench', default="lu",
                             help='Name of benchmark (lu, ft, etc...)')
-        group.add_argument('-c', '--class-bench', dest='class_bench', default="D", 
+        group.add_argument('-c', '--class-bench', dest='class_bench', default="C", 
                             help='Class of benchmark (B, C or D are the most likely)')
 
         parser.add_argument_group(group)
