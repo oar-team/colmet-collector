@@ -1,5 +1,6 @@
 uniform parameters :d i c t _ v a l u e s ( [ ' l u ' ,   ' D ' ,   ' m p i ' ,   4 ] )
-repetition;metrics;sampling_period;time2;0.1;212.51
+repetition;sampling_period;time
+2;0.1;212.51
 3;0.1;211.79
 6;1;212.52
 9;1;214.01
