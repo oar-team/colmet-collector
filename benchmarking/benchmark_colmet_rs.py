@@ -9,7 +9,7 @@ import os
 import threading
 username=""
 starttime=0
-colmet_version="rs"
+colmet_version="w"
 
 def install_nix(hosts):
     logger.debug("== Installing Nix == \n")
@@ -175,7 +175,7 @@ class Colmet_bench(Engine):
         """Execute the bench for a given combination of parameters."""
         self.parse_params(parameters)
         bench_bin_path = "~/.nix-profile/bin/"
-        mpi_executable_name = bench_bin_path + uniform_parameters['bench_name'] + "." + uniform_parameters['bench_class'] + "." + uniform_parameters['bench_type']
+        executable_name = bench_bin_path + uniform_parameters['bench_name'] + "." + uniform_parameters['bench_class'] + "." + uniform_parameters['bench_type']
 
         if colmet_version == "rs":
             self.update_colmet(self.params['sampling_period'], self.params['metrics'])
@@ -184,7 +184,10 @@ class Colmet_bench(Engine):
                 self.kill_colmet()
             self.start_colmet("--enable-stdout-backend -s {}".format(self.params['sampling_period']), "-s {}".format(self.params['sampling_period']))
 
-        bench_command = "mpirun -machinefile {}/nodefile -mca mtl psm2 -mca pml ^ucx,ofi -mca btl ^ofi,openib ".format(os.getcwd()) + mpi_executable_name
+        if uniform_parameters['bench_type'] == "mpi":
+            bench_command = "mpirun -machinefile {}/nodefile -mca mtl psm2 -mca pml ^ucx,ofi -mca btl ^ofi,openib ".format(os.getcwd()) + executable_name
+        elif uniform_parameters['bench_type'] == "omp":
+            bench_command = executable_name
     
         p = SshProcess(bench_command, self.params['mpi_root_host']).run(timeout=300)
         p.wait()

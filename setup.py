@@ -41,10 +41,10 @@ setup(
     author_email='olivier.richard@imag.fr',
     version=version,
     url='https://github.com/Meandres/colmet-collector',
-    packages=find_packages(),
-    #packages=["colmet"],
-    package_dir={'colmet': 'colmet'},
-    package_data={'colmet': ['collector/metrics/*.yml']},
+    #packages=find_packages(),
+    packages=["collector", "node"],
+    package_dir={'collector': 'colmet/collector', 'node':'colmet/node'},
+    package_data={'collector': ['metrics/*.yml']},
     install_requires=requirements,
     include_package_data=True,
     zip_safe=False,
@@ -63,8 +63,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'colmet-collector = colmet.collector.main:main',
-            'colmet-node-config = colmet.node.configure:main',
+            'colmet-collector = collector.main:main',
+            'colmet-node-config = node.configure:main',
         ],
     },
 )
