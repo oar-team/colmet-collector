@@ -9,7 +9,7 @@ import os
 import threading
 username=""
 starttime=0
-colmet_version="rs"
+colmet_version="py"
 
 def install_nix(hosts):
     logger.debug("== Installing Nix == \n")
@@ -195,10 +195,10 @@ class Colmet_bench(Engine):
 
 if __name__ == "__main__":
     starttime=time.time()
-    approx_time_expe_mins=1
+    approx_time_expe_mins=2
     approx_time_setup=20
     args = ArgsParser.get_args()
-    n_expe=6
+    n_expe=7
     if colmet_version == "rs":
         plan=experiment_plan_generator("expe_{}.yml".format(n_expe))
         filename="expe_{}_benchmark".format(n_expe)
