@@ -43,13 +43,13 @@ class Colmet_bench(Engine):
         parser.add_argument('--nxc_build_file', help='Path to the NXC deploy file')
         parser.add_argument('--build', action='store_true', help='Build the composition')
         parser.add_argument('--nxc_folder', default="~/nixProjects/nixos-compose", help="Path to the NXC folder")
-        parser.add_argument('--experiment_file', help="File describing the experiment to perform", default="expe_5.yml")
-        parser.add_argument('--result_file', help="Output file", default="expe_5_benchmark")
-        parser.add_argument('--time_experiment', default=90, help="Time needed to perform one repetition (in sec)")
+        parser.add_argument('--experiment_file', help="File describing the experiment to perform", default="expe_6.yml")
+        parser.add_argument('--result_file', help="Output file", default="expe_6_benchmark")
+        parser.add_argument('--time_experiment', default=300, help="Time needed to perform one repetition (in sec)")
         parser.add_argument('--site', default="grenoble", help="G5K site where the submission will be issued")
         parser.add_argument('--cluster', default="dahu", help="G5K cluster from where nodes should be requested")
         parser.add_argument('-v', '--verbose', action='count', dest="verbosity", default=1)
-        parser.add_argument('-n', '--nb_nodes', dest="number_nodes", default="1")
+        parser.add_argument('-n', '--nb_cmp_nodes', dest="number_compute_nodes", default=3)
         parser.add_argument('--name_bench', default="lu")
         parser.add_argument('--class_bench', default="C")
         parser.add_argument('--type_bench', default="mpi")
@@ -62,14 +62,14 @@ class Colmet_bench(Engine):
         self.plan = experiment_plan_generator(self.args.experiment_file)
         nxc_build_file = None
         if self.args.build:
-            (nxc_build_file, _time, _size) = build_nxc_execo(self.args.nxc_folder, site, cluster, walltime=15*60)
+            (nxc_build_file, _time, _size) = build_nxc_execo(self.args.nxc_folder, self.args.site, self.args.cluster, walltime=15*60)
         elif self.args.nxc_build_file is not None:
             nxc_build_file = self.args.nxc_build_file
         else:
             raise Exception("No compose info file")
-        oar_job = reserve_nodes(self.plan.get_required_nb_node()+1, self.args.site, self.args.cluster, walltime = self.plan.get_nb_remaining()*self.args.time_experiment)
+        oar_job = reserve_nodes(int(self.args.number_compute_nodes)+1, self.args.site, self.args.cluster, walltime = self.plan.get_nb_remaining()*self.args.time_experiment)
         self.oar_job_id, site = oar_job[0]
-        roles = {"collector":1, "compute":self.plan.get_required_nb_node()}
+        roles = {"collector":1, "compute":self.args.number_compute_nodes}
         node_hostnames = get_oar_job_nodes(self.oar_job_id, self.args.site)
         self.nodes = get_oar_job_nodes_nxc(self.oar_job_id, self.args.site, compose_info_file=nxc_build_file, roles_quantities=roles)
         compute_hosts = [ node_hostnames[i].address for i in range(1, len(node_hostnames)) ]
@@ -79,27 +79,28 @@ class Colmet_bench(Engine):
 
     def start_colmet(self, collector_parameters, parameters):
         """Starts colmet node agent on all the compute nodes with the specified parameters and the collector on the corresponding host"""
-        command_node = "colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.nodes["collector"], parameters)
+        command_node = "colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.nodes["collector"][0].address, parameters)
         command_collector = "colmet-collector"
-
         self.colmet_nodes = Remote(command_node, self.nodes["compute"], connection_params={"user" : "root"}).start()
-        self.collector = SshProcess(command_collector, self.nodes["collector"], connection_params={'user' : 'root'}).start()
+        self.collector = SshProcess(command_collector, self.nodes["collector"][0], connection_params={'user' : 'root'}).start()
         self.colmet_launched=True
 
     def kill_colmet(self):
         """Killing colmet node agent on all the compute nodes"""
-        # We assign to nothing to suppress outputs
+         # We assign to nothing to suppress outputs
         _ = self.colmet_nodes.kill()
-        #_ = self.collector.kill()
+        _ = self.collector.kill()
         _ = self.colmet_nodes.wait()
-        #_ = self.collector.wait()
+        _ = self.collector.wait()
         self.colmet_launched = False
 
     def update_colmet(self, new_sampling_period, new_metrics):
-        self.kill_colmet()
+        """self.kill_colmet()
         colmet_args=" --enable-perfhw -s {} -m {}".format(new_sampling_period, new_metrics)
         collector_args=""
-        self.start_colmet(collector_args, colmet_args)
+        self.start_colmet(collector_args, colmet_args)"""
+        command_update = "colmet-node-config {} {}".format(new_sampling_period, new_metrics)
+        u = Remote(command_update, self.nodes["compute"], connection_params={"user" : "root"}).run()
 
     def parse_params(self, parameters):
         p=parameters.split(";")
@@ -114,9 +115,10 @@ class Colmet_bench(Engine):
                 'bench_name':self.args.name_bench,
                 'bench_class':self.args.class_bench,
                 'bench_type':self.args.type_bench,
-                'nb_nodes':self.args.number_nodes
+                'nb_nodes':self.args.number_compute_nodes
                 }
-        f = open("expe_result", "w")
+        a = input("Stop")
+        f = open(self.args.result_file, "w")
         f.write("repetition;sampling;metrics;time\n")
         while self.plan.get_nb_remaining() > 0:
             print("Remaining : "+str(self.plan.get_percentage_remaining())+"%")
@@ -127,8 +129,7 @@ class Colmet_bench(Engine):
     def do_repetition(self, parameters):
         """Execute the bench for a given combination of parameters."""
         self.parse_params(parameters)
-        bench_bin_path = "~/.nix-profile/bin/"
-        mpi_executable_name = bench_bin_path + self.uniform_parameters['bench_name'] + "." + self.uniform_parameters['bench_class'] + "." + self.uniform_parameters['bench_type']
+        mpi_executable_name = self.uniform_parameters['bench_name'] + "." + self.uniform_parameters['bench_class'] + "." + self.uniform_parameters['bench_type']
 
         self.update_colmet(self.params['sampling_period'], self.params['metrics'])
         

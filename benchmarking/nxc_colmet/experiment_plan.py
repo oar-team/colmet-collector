@@ -10,7 +10,6 @@ class experiment_plan_generator():
         with open(filename, "r") as f:
             expe = yaml.safe_load(f)
         rep=expe['repetitions']
-        self.max_nb_nodes = max(expe["nb_nodes"])
         expe['repetitions']=list()
         for i in range(0, rep):
             expe['repetitions'].append(i)
@@ -28,9 +27,6 @@ class experiment_plan_generator():
     
     def get_nb_remaining(self):
         return len(self.sweeper.get_remaining())
-
-    def get_required_nb_node(self):
-        return self.max_nb_nodes
 
 if __name__ == "__main__":
     logger.setLevel(0)
