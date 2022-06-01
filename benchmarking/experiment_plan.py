@@ -28,6 +28,9 @@ class experiment_plan_generator():
     def get_nb_remaining(self):
         return len(self.sweeper.get_remaining())
 
+    def get_nb_total(self):
+        return len(self.sweeper.get_sweeps())
+
     def get_max_nb_nodes(self):
         return self.max_nb_nodes
 

@@ -7,6 +7,7 @@ import logging
 import time
 import os
 import threading
+from tqdm import tqdm
 username=""
 starttime=0
 colmet_version="py"
@@ -87,11 +88,12 @@ class Colmet_bench(Engine):
 
     def start_colmet(self, collector_parameters, parameters):
         logger.debug("Start colmet node agent on all the compute nodes with the specified parameters and the collector on the corresponding host")
-        command_node = ".nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
         if colmet_version == "rs":
             command_collector = "~/.nix-profile/bin/colmet-collector"
+            command_node = ".nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
         if colmet_version == "py":
             command_collector = "~/.nix-profile/bin/colmet-collector {}".format(collector_parameters)
+            command_node = "sudo-g5k .nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
 
         self.colmet_nodes = Remote(command_node, self.hostnames).start()
         self.collector = SshProcess(command_collector, self.collector_hostname).start()
@@ -113,7 +115,7 @@ class Colmet_bench(Engine):
         hf=open("nodefile","w")
         for i in range(0, nb_nodes):
             self.hostnames.append(self.initial_hostnames[i])
-            for _ in range(0, int(get_host_attributes(self.initial_hostnames[i])['architecture']['nb_cores'])*2):
+            for _ in range(0, int(get_host_attributes(self.initial_hostnames[i])['architecture']['nb_cores'])):
                 hf.write(self.initial_hostnames[i]+"\n")
         hf.close()
 
@@ -147,7 +149,7 @@ class Colmet_bench(Engine):
         install_npb(self.initial_hostnames)
         if colmet_version == "rs":
             install_colmet(self.collector_hostname, self.initial_hostnames)
-            colmet_args=" --enable-perfhw"
+            colmet_args=" --enable-perfhw true"
             self.start_colmet("", colmet_args)
         if colmet_version == "py":
             install_colmet(self.collector_hostname, nodes)
@@ -195,10 +197,10 @@ class Colmet_bench(Engine):
 
 if __name__ == "__main__":
     starttime=time.time()
-    approx_time_expe_mins=2
+    approx_time_expe_mins=10
     approx_time_setup=20
     args = ArgsParser.get_args()
-    n_expe=7
+    n_expe=8
     if colmet_version == "rs":
         plan=experiment_plan_generator("expe_{}.yml".format(n_expe))
         filename="expe_{}_benchmark".format(n_expe)
@@ -214,7 +216,7 @@ if __name__ == "__main__":
         filename="expe_{}_benchmark_without_colmet".format(n_expe)
         f = open(filename, "w")
         f.write("repetition;sampling_period;time\n")
-    args.number_nodes=4
+    args.number_nodes=7
     logger.setLevel(40 - args.verbosity * 10)
     uniform_parameters={
             'bench_name': args.name_bench, 
@@ -225,8 +227,8 @@ if __name__ == "__main__":
     bench = Colmet_bench()
     bench.prepare_bench(args, format_walltime(approx_time_setup + plan.get_nb_remaining() * approx_time_expe_mins))
     
-    while plan.get_nb_remaining() > 0:
-        print("Remaining : "+str(plan.get_percentage_remaining())+"%")
+    for i in tqdm(range(plan.get_nb_total()), desc="Progress"):
+        #print("Remaining : "+str(plan.get_percentage_remaining())+"%")
         out=bench.run_xp(uniform_parameters, plan.get_next_config())
         f.write(out)
     f.close()
