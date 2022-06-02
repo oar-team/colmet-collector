@@ -1,2 +1,2 @@
-repetitions: 5
+repetitions: 10
 sampling_period: [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1]

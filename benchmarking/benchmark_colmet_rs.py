@@ -10,7 +10,7 @@ import threading
 from tqdm import tqdm
 username=""
 starttime=0
-colmet_version="py"
+colmet_version="w"
 
 def install_nix(hosts):
     logger.debug("== Installing Nix == \n")
@@ -187,7 +187,7 @@ class Colmet_bench(Engine):
             self.start_colmet("--enable-stdout-backend -s {}".format(self.params['sampling_period']), "-s {}".format(self.params['sampling_period']))
 
         if uniform_parameters['bench_type'] == "mpi":
-            bench_command = "mpirun -machinefile {}/nodefile -mca mtl psm2 -mca pml ^ucx,ofi -mca btl ^ofi,openib ".format(os.getcwd()) + executable_name
+            bench_command = "ulimit -s unlimited && mpirun -machinefile {}/nodefile -mca mtl psm2 -mca pml ^ucx,ofi -mca btl ^ofi,openib ".format(os.getcwd()) + executable_name
         elif uniform_parameters['bench_type'] == "omp":
             bench_command = executable_name
     
@@ -197,7 +197,7 @@ class Colmet_bench(Engine):
 
 if __name__ == "__main__":
     starttime=time.time()
-    approx_time_expe_mins=10
+    approx_time_expe_mins=5
     approx_time_setup=20
     args = ArgsParser.get_args()
     n_expe=8
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         filename="expe_{}_benchmark_without_colmet".format(n_expe)
         f = open(filename, "w")
         f.write("repetition;sampling_period;time\n")
-    args.number_nodes=7
+    args.number_nodes=9
     logger.setLevel(40 - args.verbosity * 10)
     uniform_parameters={
             'bench_name': args.name_bench, 
