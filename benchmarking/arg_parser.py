@@ -20,10 +20,10 @@ class ArgsParser(object):
         group.add_argument('-t', '--type-bench', dest='type_bench', default="mpi",
                             help='Type of benchmark (OpenMP or MPI)')
         
-        group.add_argument('-name', '--name-bench', dest='name_bench', default="ep",
+        group.add_argument('-name', '--name-bench', dest='name_bench', default="lu",
                             help='Name of benchmark (lu, ft, etc...)')
-        group.add_argument('-c', '--class-bench', dest='class_bench', default="E", 
-                            help='Class of benchmark (B, C or D are the most likely)')
+        group.add_argument('-c', '--class-bench', dest='class_bench', default="C", 
+                            help='Class of benchmark ( C, D or E are the most likely)')
 
         parser.add_argument_group(group)
 
