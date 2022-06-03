@@ -197,10 +197,11 @@ class Colmet_bench(Engine):
 
 if __name__ == "__main__":
     starttime=time.time()
-    approx_time_expe_mins=1
     approx_time_setup=20
     args = ArgsParser.get_args()
-    n_expe=9
+    approx_time_expe_mins=int(args.time_expe)
+    colmet_version = args.colmet_version
+    n_expe=8
     if colmet_version == "rs":
         plan=experiment_plan_generator("expe_{}.yml".format(n_expe))
         filename="expe_{}_benchmark".format(n_expe)
@@ -216,7 +217,7 @@ if __name__ == "__main__":
         filename="expe_{}_benchmark_without_colmet".format(n_expe)
         f = open(filename, "w")
         f.write("repetition;sampling_period;time\n")
-    args.number_nodes=5
+    args.number_nodes=9
     logger.setLevel(40 - args.verbosity * 10)
     uniform_parameters={
             'bench_name': args.name_bench, 
