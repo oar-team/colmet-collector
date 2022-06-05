@@ -20,9 +20,9 @@ class ArgsParser(object):
         group.add_argument('-t', '--type-bench', dest='type_bench', default="mpi",
                             help='Type of benchmark (OpenMP or MPI)')
         
-        group.add_argument('-name', '--name-bench', dest='name_bench', default="ep",
+        group.add_argument('-name', '--name-bench', dest='name_bench', default="lu",
                             help='Name of benchmark (lu, ft, etc...)')
-        group.add_argument('-c', '--class-bench', dest='class_bench', default="E", 
+        group.add_argument('-c', '--class-bench', dest='class_bench', default="D", 
                             help='Class of benchmark ( C, D or E are the most likely)')
 
         parser.add_argument_group(group)
@@ -31,7 +31,7 @@ class ArgsParser(object):
 
         group.add_argument('--store', dest='store', default=None, help='Nix store with OpenMPI, NPB and Colmet already installed. Speeds up the building process')
 
-        group.add_argument("--time_expe", dest="time_expe", default="2")
+        group.add_argument("--time_expe", dest="time_expe", default="3")
         
         group.add_argument("--colmet_version", dest="colmet_version", default="rs")
        
