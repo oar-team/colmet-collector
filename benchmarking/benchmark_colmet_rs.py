@@ -201,7 +201,7 @@ if __name__ == "__main__":
     args = ArgsParser.get_args()
     approx_time_expe_mins=int(args.time_expe)
     colmet_version = args.colmet_version
-    n_expe=9
+    n_expe=10
     if colmet_version == "rs":
         plan=experiment_plan_generator("expe_{}.yml".format(n_expe))
         filename="expe_{}_benchmark".format(n_expe)
