@@ -90,10 +90,10 @@ class Colmet_bench(Engine):
         logger.debug("Start colmet node agent on all the compute nodes with the specified parameters and the collector on the corresponding host")
         if colmet_version == "rs":
             command_collector = "~/.nix-profile/bin/colmet-collector"
-            command_node = ".nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
+            command_node = "~/.nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
         if colmet_version == "py":
             command_collector = "~/.nix-profile/bin/colmet-collector {}".format(collector_parameters)
-            command_node = "sudo-g5k .nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
+            command_node = "sudo-g5k /home/imeignanmasson/.nix-profile/bin/colmet-node --zeromq-uri tcp://{}:5556 {}".format(self.collector_hostname, parameters)
 
         self.colmet_nodes = Remote(command_node, self.hostnames).start()
         self.collector = SshProcess(command_collector, self.collector_hostname).start()
@@ -140,6 +140,7 @@ class Colmet_bench(Engine):
         for i in range(1, len(nodes)):
             self.initial_hostnames.append(nodes[i].address)
         self.initial_nb_hostnames = len(self.initial_hostnames)
+        self.update_hostnames(args.number_nodes-1)
         
         # Install the required softwares on the corresponding nodes
         install_nix(nodes)
@@ -153,7 +154,6 @@ class Colmet_bench(Engine):
             self.start_colmet("", colmet_args)
         if colmet_version == "py":
             install_colmet(self.collector_hostname, nodes)
-        self.update_hostnames(args.number_nodes-1)
         
     def clean_bench(self):
         oardel(self.jobs)
@@ -201,23 +201,23 @@ if __name__ == "__main__":
     args = ArgsParser.get_args()
     approx_time_expe_mins=int(args.time_expe)
     colmet_version = args.colmet_version
-    n_expe=10
+    n_expe=5
     if colmet_version == "rs":
         plan=experiment_plan_generator("expe_{}.yml".format(n_expe))
-        filename="expe_{}_benchmark".format(n_expe)
+        filename="expe_{}_benchmark_{}_{}".format(n_expe, args.name_bench, args.class_bench)
         f = open(filename, "w")
         f.write("repetition;metrics;sampling_period;time\n")
     elif colmet_version == "py":
         plan=experiment_plan_generator("expe_{}_old_colmet.yml".format(n_expe))
-        filename="expe_{}_benchmark_old_colmet".format(n_expe)
+        filename="expe_{}_benchmark_old_colmet_{}_{}".format(n_expe, args.name_bench, args.class_bench)
         f = open(filename, "w")
         f.write("repetition;sampling_period;time\n")
     else:
         plan=experiment_plan_generator("expe_{}_without_colmet.yml".format(n_expe))
-        filename="expe_{}_benchmark_without_colmet".format(n_expe)
+        filename="expe_{}_benchmark_without_colmet_{}_{}".format(n_expe, args.name_bench, args.class_bench)
         f = open(filename, "w")
         f.write("repetition;sampling_period;time\n")
-    args.number_nodes=9
+    args.number_nodes=2
     logger.setLevel(40 - args.verbosity * 10)
     uniform_parameters={
             'bench_name': args.name_bench, 
