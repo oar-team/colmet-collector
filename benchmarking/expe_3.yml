@@ -1,3 +1,0 @@
-repetitions: 10
-metrics: ["cache,nr_periods,context_switches,cpu_migrations,bus_cycles", "cache,pgfault,dirty,active_file,nr_periods,throttled_time,context_switches,branch_instructions,pgpgin,pgpgout,inactive_anon,total_swap,branch_misses,cache_l1,cache_op_read,cache_result_access,alignement_faults,cpu_migrations,bus_cycles,emulation_faults"]
-sampling_period: [0.1, 2]

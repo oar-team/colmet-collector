@@ -20,10 +20,11 @@ class ArgsParser(object):
         group.add_argument('-t', '--type-bench', dest='type_bench', default="mpi",
                             help='Type of benchmark (OpenMP or MPI)')
         
-        group.add_argument('-name', '--name-bench', dest='name_bench', default="lu",
+        group.add_argument('-name', '--name-bench', dest='name_bench', default="ep",
                             help='Name of benchmark (lu, ft, etc...)')
-        group.add_argument('-c', '--class-bench', dest='class_bench', default="D", 
+        group.add_argument('-c', '--class-bench', dest='class_bench', default="E", 
                             help='Class of benchmark ( C, D or E are the most likely)')
+        parser.add_argument('-n', '--nb_cmp_nodes', dest="number_compute_nodes", default=4)
 
         parser.add_argument_group(group)
 
@@ -34,6 +35,10 @@ class ArgsParser(object):
         group.add_argument("--time_expe", dest="time_expe", default="3")
         
         group.add_argument("--colmet_version", dest="colmet_version", default="rs")
+
+        group.add_argument('-f', "--expe-file", dest='expe_file', help="File describing the parameters of the exeperiment")
+
+        group.add_argument('-o', '--output-file', dest="output_file", help="Path to the file where the results are written")
        
         parser.add_argument_group(group)
 

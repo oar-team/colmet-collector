@@ -1,5 +1,0 @@
-repetitions: 5
-colmet: ["on", "off"]
-metrics: ["cache,nr_periods,context_switches", "cache,pgfault,dirty,active_file,nr_periods,throttled_time,context_switches,branch_instructions"]
-sampling_period: [1, 5]
-nodes: [2, 10]
