@@ -79,37 +79,41 @@ class Colmet_bench(Engine):
                 hf.write(a+"\n")
         hf.close()
 
-    def kill_colmet(self):
+    def kill_colmet(self, colmet_version):
         logger.debug("Killing colmet node agent on all the compute nodes")
         # We assign to nothing to suppress outputs
         _ = self.colmet_nodes.kill()
-        #_ = self.collector.kill()
-        #if colmet_version == "Python":
-        #    _ = SshProcess("killall .colmet-collect", self.collector_hostname).run()
+        if colmet_version == "Python":
+            _ = SshProcess("killall .python-collect", self.collector_hostname).run()
+        else:
+            _ = self.collector.kill()
+            _ = self.collector.wait()
         _ = self.colmet_nodes.wait()
-        #_ = self.collector.wait()
         self.colmet_launched = False
 
 
     def update_colmet(self, parameters):
         if self.colmet_launched :
-            self.kill_colmet()
+            self.kill_colmet(parameters['type_colmet'])
         if (parameters['type_colmet']=="Rust" or parameters['type_colmet']=="Python"):
             if (parameters['type_colmet']=="Rust"):
-                node_command = "~/.nix-profile/bin/colmet-node --enable-perfhw -s {} -m {} --zeromq-uri tcp://{}:5556".format(parameters["sampling_period"], parameters["metrics"], self.collector_hostname)
+                node_command = "~/.nix-profile/bin/colmet-node --enable-perfhw true -s {} -m {} --zeromq-uri tcp://{}:5556".format(parameters["sampling_period"], parameters["metrics"], self.collector_hostname)
                 collector_command = "~/.nix-profile/bin/colmet-collector"
             else:
-                node_command = "~/.nix-profile/bin/python-node -s {} --zeromq-uri tcp://{}:5556".format(parameters["sampling_period"], self.collector_hostname)
+                node_command = "sudo-g5k /home/imeignanmasson/.nix-profile/bin/python-node -s {} --zeromq-uri tcp://{}:5556".format(parameters["sampling_period"], self.collector_hostname)
                 collector_command = "~/.nix-profile/bin/python-collector -s {} --enable-stdout-backend".format(parameters["sampling_period"])
             self.colmet_nodes = Remote(node_command, self.hostnames).start()
-            #self.collector = SshProcess(collector_command, self.collector_hostname).start()
+            self.collector = SshProcess(collector_command, self.collector_hostname).start()
             self.colmet_launched = True
 
     def prepare_bench(self, args, walltime):
         """Request a job to g5k and set up the nodes to execute the benchmark"""
 
         #Requests a job
-        self.jobs = oarsub([(OarSubmission(resources="cluster=1/nodes={}".format(args.number_compute_nodes+1), walltime=walltime, additional_options="-O /dev/null -E /dev/null"), args.site)])
+        if(args.reservation_date is None):
+            self.jobs = oarsub([(OarSubmission(resources="cluster=1/nodes={}".format(args.number_compute_nodes+1), walltime=walltime, additional_options="-O /dev/null -E /dev/null"), args.site)])
+        else:
+            self.jobs = oarsub([(OarSubmission(resources="cluster=1/nodes={}".format(args.number_compute_nodes+1), walltime=walltime, reservation_date=args.reservation_date, additional_options="-O /dev/null -E /dev/null"), args.site)])
         self.job=self.jobs[0]
         job_id, site = self.job
         wait_oar_job_start(job_id)
@@ -164,7 +168,7 @@ if __name__ == "__main__":
     colmet_version=plan.type_colmet[0]
     filename="{}_{}_{}_{}.csv".format(args.output_file, colmet_version, args.name_bench, args.class_bench)
     f = open(filename, "w")
-    f.write("repetitions,sampling_period,metrics,time,Mops\n")
+    f.write("repetitions,type_colmet,sampling_period,metrics,time,Mops\n")
     logger.setLevel(40 - args.verbosity * 10)
     uniform_parameters={
             'bench_name': args.name_bench, 

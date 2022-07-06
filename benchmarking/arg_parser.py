@@ -35,6 +35,8 @@ class ArgsParser(object):
         group.add_argument("--time_expe", dest="time_expe", default="4")
         
         group.add_argument("--colmet_version", dest="colmet_version", default="rs")
+        
+        group.add_argument("--reservation_date", dest="reservation_date")
 
         group.add_argument('-f', "--expe-file", dest='expe_file', help="File describing the parameters of the exeperiment")
 
