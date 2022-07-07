@@ -32,7 +32,7 @@ class ArgsParser(object):
 
         group.add_argument('--store', dest='store', default=None, help='Nix store with OpenMPI, NPB and Colmet already installed. Speeds up the building process')
 
-        group.add_argument("--time_expe", dest="time_expe", default="4")
+        group.add_argument("--time_expe", dest="time_expe", default="5")
         
         group.add_argument("--colmet_version", dest="colmet_version", default="rs")
         
