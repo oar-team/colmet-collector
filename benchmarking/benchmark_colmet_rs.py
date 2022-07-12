@@ -157,7 +157,7 @@ class Colmet_bench(Engine):
     
         p = SshProcess(bench_command, self.hostnames[0]).run(timeout=300)
         p.wait()
-        return "{repetitions},{type_colmet},{sampling_period},\"{metrics}\"".format(**parameters)+","+parse_output(p.stdout)+"\n"
+        return "{repetitions},{type_colmet},{sampling_period},\"{metrics}\"".format(**parameters)+","+parse_output(p.stdout)
 
 if __name__ == "__main__":
     starttime=time.time()
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     colmet_version=plan.type_colmet[0]
     filename="{}_{}_{}_{}_{}.csv".format(args.output_file, colmet_version, args.number_compute_nodes, args.name_bench, args.class_bench)
     f = open(filename, "w")
-    f.write("repetitions,type_colmet,sampling_period,metrics,time,Mops\n")
+    f.write("repetitions,type_colmet,sampling_period,metrics,time,Mops,nb_nodes\n")
     logger.setLevel(40 - args.verbosity * 10)
     uniform_parameters={
             'bench_name': args.name_bench, 
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     #a=input("Stop") 
     for i in tqdm(range(plan.get_nb_total()), desc="Progress"):
         #print("Remaining : "+str(plan.get_percentage_remaining())+"%")
-        out=bench.run_xp(uniform_parameters, plan.get_next_config())
+        out=bench.run_xp(uniform_parameters, plan.get_next_config())+",{}\n".format(args.number_compute_nodes)
         f.write(out)
     f.close()
     bench.clean_bench()
