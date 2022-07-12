@@ -24,7 +24,7 @@ class ArgsParser(object):
                             help='Name of benchmark (lu, ft, etc...)')
         group.add_argument('-c', '--class-bench', dest='class_bench', default="D", 
                             help='Class of benchmark ( C, D or E are the most likely)')
-        parser.add_argument('-n', '--nb_cmp_nodes', dest="number_compute_nodes", default=4)
+        parser.add_argument('-n', '--nb_cmp_nodes', dest="number_compute_nodes", type=int, default=4)
 
         parser.add_argument_group(group)
 

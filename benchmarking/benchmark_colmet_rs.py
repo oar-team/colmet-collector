@@ -166,7 +166,7 @@ if __name__ == "__main__":
     approx_time_expe_mins=int(args.time_expe)
     plan=experiment_plan_generator(args.expe_file)
     colmet_version=plan.type_colmet[0]
-    filename="{}_{}_{}_{}.csv".format(args.output_file, colmet_version, args.name_bench, args.class_bench)
+    filename="{}_{}_{}_{}_{}.csv".format(args.output_file, colmet_version, args.number_compute_nodes, args.name_bench, args.class_bench)
     f = open(filename, "w")
     f.write("repetitions,type_colmet,sampling_period,metrics,time,Mops\n")
     logger.setLevel(40 - args.verbosity * 10)
