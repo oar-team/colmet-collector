@@ -1,4 +1,4 @@
 repetitions: 30
-type_colmet: ["Python"]
+monitoring_soft: ["Colmet Python"]
 sampling_period: [0.001, 0.01, 0.1, 1]
-metrics: [ "a" ]
+metrics: [ "_" ]

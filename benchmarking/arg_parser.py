@@ -34,7 +34,7 @@ class ArgsParser(object):
 
         group.add_argument("--time_expe", dest="time_expe", default="5")
         
-        group.add_argument("--colmet_version", dest="colmet_version", default="rs")
+        group.add_argument("--monitoring_soft", dest="monitoring_soft", default="Colmet Rust")
         
         group.add_argument("--reservation_date", dest="reservation_date")
 

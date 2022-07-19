@@ -10,7 +10,7 @@ class experiment_plan_generator():
         with open(filename, "r") as f:
             expe = yaml.safe_load(f)
         rep=expe['repetitions']
-        self.type_colmet=expe['type_colmet']
+        self.monitoring_soft=expe['monitoring_soft']
         expe['repetitions']=list()
         for i in range(0, rep):
             expe['repetitions'].append(i)
@@ -18,9 +18,7 @@ class experiment_plan_generator():
 
     def get_next_config(self):
         config=self.sweeper.get_next()
-        if(config["type_colmet"]=="Python"):
-            config['metrics']='_'
-        if(config["type_colmet"]=="Without"):
+        if(config["monitoring_soft"]=="Without"):
             config['sampling_period']=-1
             config['metrics']='_'
         return config 
@@ -41,7 +39,7 @@ class experiment_plan_generator():
 
 if __name__ == "__main__":
     logger.setLevel(0)
-    plan=experiment_plan_generator("expe_parameters.yml")
+    plan=experiment_plan_generator("expe_parameters_likwid.yml")
     print(plan.get_nb_remaining())
     print(plan.get_next_config())
     print(plan.get_next_config())

@@ -1,4 +1,4 @@
 repetitions: 30
-type_colmet: ["Without"]
+monitoring_soft: ["Without"]
 sampling_period: [ 1 ]
-metrics: [ 'a' ]
+metrics: [ '_' ]
