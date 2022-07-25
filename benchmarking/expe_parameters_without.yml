@@ -1,4 +1,0 @@
-repetitions: 30
-monitoring_soft: ["Without"]
-sampling_period: [ 1 ]
-metrics: [ '_' ]
