@@ -23,21 +23,22 @@ def main():
     if args.elastic_host:
         elasticsearch_backend = ElasticsearchOutputBackend(args.elastic_host)
 
-    print("Waiting data")    
+    print("Waiting data")
     while True:
         received_data = zeromq.receive()
-        stdout_backend.push(received_data)
+        if received_data != []:
+            stdout_backend.push(received_data)
         if received_data:
             if args.elastic_host:
                 elasticsearch_backend.push(CounterFactory(received_data).get_counters())
-        sleep(args.sampling_period)
-
+        #sleep(args.sampling_period)
 
 def sleep(duration):
     now = time.time()
     time_to_wait = ((now // duration) + 1) * duration - now
-    # time.sleep(time_to_wait)
-    time.sleep(1)
+    print(time_to_wait)
+    time.sleep(time_to_wait)
+    # time.sleep(1)
 
 
 class StdoutBackend():
@@ -50,7 +51,7 @@ class StdoutBackend():
         if measurements:
             counters = CounterFactory(measurements).get_counters()
             for counter in counters:
-                print("\n", "Timestamp :", counter.timestamp, " / Job :", counter.job_id, " / Hostname :", counter.hostname ,  "/ Backend :", counter.backend_name)
+                print("\n", "Timestamp :", counter.timestamp, " / Job :", counter.job_id, " / Hostname :", counter.hostname, "/ Backend :", counter.backend_name)
                 for metric_name, metric_value in counter.metrics.items():
                     print('{:>25} : {}'.format(metric_name, str(metric_value)))
 

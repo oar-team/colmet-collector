@@ -3,6 +3,7 @@
 *.log
 *#
 **#
+.venv
 
 # Packages
 *.egg
@@ -51,3 +52,15 @@ docs/_build
 
 # Vagrant
 .vagrant
+
+benchmarking/__pycache__
+benchmarking/cachedir
+benchmarking/sweeps
+benchmarking/nodefile
+benchmarking/install_commands.sh
+
+benchmarking/nxc_colmet/artifact
+benchmarking/nxc_colmet/deploy
+benchmarking/nxc_colmet/expe_result
+benchmarking/nxc_colmet/nodefile
+benchmarking/nxc_colmet/sweeps

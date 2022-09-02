@@ -42,14 +42,14 @@ class ZMQInputBackend(object):
         while True:
             try:
                 received_data = self.receiver.recv(zmq.NOBLOCK)
-                received_data = msgpack.unpackb(received_data)
+                received_data = msgpack.unpackb(received_data, strict_map_key=False)
                 res.append(received_data)
                 del received_data
             except zmq.ZMQError as e:
                 if e.errno != zmq.EAGAIN:
                     raise e
                 else:  # zmq.EAGAIN is raised when there is no more message available in the queue
-                    LOG.debug("Zeromq receive queue is currently empty")
+                    # LOG.debug("Zeromq receive queue is currently empty")
                     return res
 
 

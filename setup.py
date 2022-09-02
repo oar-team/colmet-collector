@@ -22,7 +22,8 @@ requirements = [
     #'tables',
     'pyzmq',
     'requests',
-    'pyyaml'
+    'pyyaml',
+    'msgpack'
 ]
 
 version = ''
@@ -39,11 +40,11 @@ setup(
     author="Olivier Richard",
     author_email='olivier.richard@imag.fr',
     version=version,
-    url='https://github.com/oar-team/colmet-collector',
-    # packages=find_packages(),
+    url='https://github.com/Meandres/colmet-collector',
+    #packages=find_packages(),
     packages=["colmet"],
     package_dir={'colmet': 'colmet'},
-    package_data={'colmet': ['collector/metrics/*.yml']},
+    package_data={'colmet': ['colmet/collector/metrics/*.yml']},
     install_requires=requirements,
     include_package_data=True,
     zip_safe=False,
